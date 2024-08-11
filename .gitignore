@@ -1,0 +1,5 @@
+.env
+data/
+__pycache__
+myenv/
+copy_of_multi_modal_rag_chroma.py
