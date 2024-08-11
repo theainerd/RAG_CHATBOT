@@ -125,26 +125,22 @@ def main():
         if not os.path.exists(temp_dir):
             os.makedirs(temp_dir)
 
-        # Save the uploaded image
-        # Validate and save the uploaded image
-        if uploaded_file.name:
+        # Check if a file is uploaded before proceeding
+        if uploaded_file is not None:
+            # Save the uploaded image
             image_path = os.path.join(temp_dir, uploaded_file.name)
             with open(image_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
-
-
-        if uploaded_file is not None:
-            # Save the uploaded image
-            image_path = os.path.join("temp", uploaded_file.name)
-            with open(image_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
+            st.success(f"File '{uploaded_file.name}' uploaded successfully!")
+        else:
+            st.warning("Please upload an image.")
 
             # Handle user input
-            query = st.text_input("Ask a question about the image:")
-            if query:
-                with st.spinner("Analyzing the image and generating response..."):
-                    result = image_query(query, image_path)
-                    st.markdown(f"**Answer:** {result}")
+        query = st.text_input("Ask a question about the image:")
+        if query:
+            with st.spinner("Analyzing the image and generating response..."):
+                result = image_query(query, image_path)
+                st.markdown(f"**Answer:** {result}")
 
     # Footer (Optional)
     st.markdown("---")
