@@ -29,7 +29,7 @@ Create a .env file in the root directory of the project and add the following en
 
 ```bash
    OPENAI_API_KEY=your_openai_api_key_here
-   HUGGINGFACE_TOKEN=your_hugging_face_token_here
+   HF_TOKEN=your_hugging_face_token_here
 ```
 
 Replace your_openai_api_key_here and your_hugging_face_token_here with your actual API key and token.
