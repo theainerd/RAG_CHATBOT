@@ -84,7 +84,7 @@ def main():
 
     # Set up the app UI
     st.title("Manufacturing Q&A")
-    mode = st.radio("Choose Query Type:", ("RAG (Document Query)", "Image Question Answering"))
+    mode = st.radio("Choose Query Type:", ("RAG (Document Query)", "Visual Question Answering"))
 
     # RAG flow
     if mode == "RAG (Document Query)":
