@@ -1,6 +1,6 @@
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+# __import__('pysqlite3')
+# import sys
+# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 import os
 import json
@@ -8,8 +8,8 @@ import streamlit as st
 import base64
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
-from vector_store import setup_chroma_vectorstore, add_texts_to_vectorstore, get_retriever
-from data_extraction import extract_pdf_elements, categorize_elements_by_type
+from app.vector_store import setup_chroma_vectorstore, add_texts_to_vectorstore, get_retriever
+from app.data_extraction import extract_pdf_elements, categorize_elements_by_type
 from llm import setup_chain
 from langchain_experimental.open_clip import OpenCLIPEmbeddings
 
