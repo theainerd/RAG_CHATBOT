@@ -18,10 +18,8 @@ def categorize_elements_by_type(elements):
     texts = []
     for element in elements:
         element_type = str(type(element))
-        if "Table" in element_type:
-            tables.append(str(element))
-        elif "CompositeElement" in element_type:
+        if "CompositeElement" in element_type:
             texts.append(str(element))
-    return tables, texts
+    return texts
 
 

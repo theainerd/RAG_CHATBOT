@@ -1,15 +1,11 @@
-# these three lines swap the stdlib sqlite3 lib with the pysqlite3 package
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-
 import os
 import json
 import streamlit as st
 import base64
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
-from vector_store import get_retriever
+from vector_store import setup_chroma_vectorstore, add_texts_to_vectorstore, get_retriever
+from data_extraction import extract_pdf_elements, categorize_elements_by_type
 from llm import setup_chain
 from langchain_experimental.open_clip import OpenCLIPEmbeddings
 
@@ -19,21 +15,42 @@ import torch.nn as nn
 # helper imports
 from tqdm import tqdm
 import json
-import os
 import numpy as np
 import pickle
 from typing import List, Union, Tuple
+
 # Load environment variables
 def set_environment_variables():
     load_dotenv()  # This loads environment variables from the .env file
 
+# Function to create Chroma DB if it doesn't exist
+def create_chroma_db_if_not_exists(pdf_path, image_output_dir, chroma_db_dir):
+    if not os.path.exists(chroma_db_dir):
+        with tqdm(total=3, desc="Creating Chroma DB", unit="step") as pbar:
+            # Extract PDF elements
+            raw_pdf_elements = extract_pdf_elements(pdf_path, image_output_dir)
+            pbar.update(1)
+            
+            # Categorize elements
+            texts = categorize_elements_by_type(raw_pdf_elements)
+            pbar.update(1)
+            
+            # Setup Chroma vectorstore and add texts
+            vectorstore = setup_chroma_vectorstore(chroma_db_dir)
+            add_texts_to_vectorstore(vectorstore, texts)
+            pbar.update(1)
+            
+            return vectorstore
+    else:
+        return Chroma(
+            persist_directory=chroma_db_dir,
+            embedding_function=OpenCLIPEmbeddings(),
+            collection_name="mm_rag_clip_photos"
+        )
+
 # Setup vector store and chain for RAG once, when the app is initialized
-def initialize_rag_system():
-    vectorstore = Chroma(
-        persist_directory="./chroma_db",
-        embedding_function=OpenCLIPEmbeddings(),
-        collection_name="mm_rag_clip_photos"
-    )
+def initialize_rag_system(pdf_path, image_output_dir, chroma_db_dir):
+    vectorstore = create_chroma_db_if_not_exists(pdf_path, image_output_dir, chroma_db_dir)
     retriever = get_retriever(vectorstore)
     chain = setup_chain(retriever)
     return chain
@@ -84,7 +101,11 @@ def main():
     # Initialize the RAG system (only once)
     if "chain" not in st.session_state:
         with tqdm(total=2, desc="Initializing System", unit="step") as pbar:
-            st.session_state.chain = initialize_rag_system()
+            st.session_state.chain = initialize_rag_system(
+                pdf_path="data/Robotical-Automation-in-CNC-Machine-Tools-A-Review.pdf",
+                image_output_dir="data/",
+                chroma_db_dir="./chroma_db"
+            )
             pbar.update(2)
 
     # Set up the app UI
