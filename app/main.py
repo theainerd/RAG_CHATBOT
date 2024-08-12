@@ -106,7 +106,7 @@ def main():
     if "chain" not in st.session_state:
         with tqdm(total=2, desc="Initializing System", unit="step") as pbar:
             st.session_state.chain = initialize_rag_system(
-                pdf_path="data/Robotical-Automation-in-CNC-Machine-Tools-A-Review.pdf",
+                pdf_path="../data/Robotical-Automation-in-CNC-Machine-Tools-A-Review.pdf",
                 image_output_dir="data/",
                 chroma_db_dir="./chroma_db"
             )
