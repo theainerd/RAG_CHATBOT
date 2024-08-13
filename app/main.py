@@ -173,8 +173,6 @@ def main():
                 st.markdown(f"**Answer:** {result}")
 
     # Footer (Optional)
-    st.markdown("---")
-    st.markdown("Made with ❤️ by (https://yourwebsite.com)")
 
 if __name__ == "__main__":
     main()
