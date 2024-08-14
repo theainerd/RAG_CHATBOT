@@ -172,7 +172,5 @@ def main():
                 result = image_query(query, image_path)
                 st.markdown(f"**Answer:** {result}")
 
-    # Footer (Optional)
-
 if __name__ == "__main__":
     main()
