@@ -4,5 +4,9 @@ langchain-openai
 python-dotenv
 langchain-huggingface
 langchain-chroma
+pypdf
+streamlit
+langchain-unstructured
+pi-heif
 
 

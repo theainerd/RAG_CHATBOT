@@ -1,47 +1,75 @@
 import os
-from langchain_community.document_loaders import PyPDFDirectoryLoader
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_chroma import Chroma
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from tqdm import tqdm
+from io import BytesIO
+import streamlit as st
+from langchain_unstructured import UnstructuredLoader
+from langchain.vectorstores import Chroma
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.embeddings.openai import OpenAIEmbeddings
 from dotenv import load_dotenv
-from langchain_openai import OpenAIEmbeddings
 
-# Load environment variables from a .env file
+# Load environment variables
 load_dotenv()
 
-# Setup
-pdf_directory = "data/"
-loader = PyPDFDirectoryLoader(pdf_directory)
-embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
-vector_store = Chroma(embedding_function=embeddings)
+# Streamlit App
+st.title("PDF Embedding and Chroma DB Storage")
+st.write("Upload your PDF files to create embeddings and store them in Chroma DB.")
 
-# Load documents from the directory
-print("Loading PDFs...")
-docs = loader.load()
-print(docs)
-print(f"Loaded {len(docs)} documents.")
+# Upload files
+uploaded_files = st.file_uploader("Upload PDF Files", accept_multiple_files=True, type=["pdf"])
 
-# Setup text splitter
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,  # chunk size (characters)
-    chunk_overlap=200,  # chunk overlap (characters)
-    add_start_index=True,  # track index in original document
-)
+if uploaded_files:
+    # Process Uploaded PDFs
+    st.write("Processing uploaded PDFs...")
+    docs = []
 
-# Split documents into chunks and add to the vector store
-print("Splitting documents into chunks...")
-all_splits = []
-for doc in tqdm(docs, desc="Splitting Documents", unit="doc"):
-    splits = text_splitter.split_documents([doc])  # Split each document
-    all_splits.extend(splits)
+    # Create progress bar for file loading
+    progress_bar = st.progress(0)
+    for i, uploaded_file in enumerate(uploaded_files):
+        with st.spinner(f"Loading {uploaded_file.name}..."):
+            # Use UnstructuredLoader for file-like objects
+            loader = UnstructuredLoader(file=BytesIO(uploaded_file.read()), metadata_filename=uploaded_file.name)
+            docs.extend(loader.load())
+        
+        # Update progress bar
+        progress_bar.progress((i + 1) / len(uploaded_files))
 
-print(all_splits)
+    st.write(f"Loaded {len(docs)} documents.")
 
-# Add split documents to the vector store
-print("Adding documents to vector store...")
-document_ids = []
-for split in tqdm(all_splits, desc="Adding to Vector Store", unit="split"):
-    document_ids.append(vector_store.add_documents([split]))
+    # Setup text splitter
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,  # chunk size (characters)
+        chunk_overlap=200,  # chunk overlap (characters)
+        add_start_index=True,  # track index in original document
+    )
 
-print("Vector store created and documents added.")
+    # Create progress bar for splitting documents
+    st.write("Splitting documents into chunks...")
+    all_splits = []
+    progress_bar = st.progress(0)
+    for i, doc in enumerate(docs):
+        splits = text_splitter.split_documents([doc])
+        all_splits.extend(splits)
+        
+        # Update progress bar
+        progress_bar.progress((i + 1) / len(docs))
+
+    st.write(f"Total chunks created: {len(all_splits)}")
+
+    # Create embeddings
+    embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
+
+    # Initialize Chroma
+    vector_store = Chroma(embedding_function=embeddings)
+
+    # Add documents to Chroma DB
+    st.write("Adding documents to Chroma DB...")
+    document_ids = []
+    progress_bar = st.progress(0)
+    for i, split in enumerate(all_splits):
+        document_ids.append(vector_store.add_documents([split]))
+
+        # Update progress bar
+        progress_bar.progress((i + 1) / len(all_splits))
+
+    st.success("Documents have been added to Chroma DB.")
+    st.write(f"Total documents stored: {len(document_ids)}")

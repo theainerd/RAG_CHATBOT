@@ -4,3 +4,4 @@ myenv/
 copy_of_multi_modal_rag_chroma.py
 chroma_db/
 app/.env
+app/chroma
