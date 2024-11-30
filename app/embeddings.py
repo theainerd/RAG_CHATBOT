@@ -13,8 +13,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Streamlit App Setup
-st.set_page_config(page_title="Skincare Treatment Assistant", layout="wide")
-st.title("💆 Skincare Treatment Assistant")
+st.set_page_config(page_title="AI Sibzi", layout="wide")
+st.title("💆 AI Sibzi")
 st.write("Upload PDFs to create embeddings, store them in Chroma DB, and interact using a chat interface.")
 
 # Directory for persistent storage
